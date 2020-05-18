@@ -1009,7 +1009,10 @@ ld_flags += zlib_ldflags
 ld_lib_flags += zlib_ldflags
 
 
+# mcmc:
+mcmc_cflags = get_flags ([], 'MCMC_CFLAGS', '--cflags libmcmc_')
 
+cpp_flags += mcmc_cflags
 
 
 
