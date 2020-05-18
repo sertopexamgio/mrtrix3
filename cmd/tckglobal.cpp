@@ -23,12 +23,11 @@
 #include "thread.h"
 #include "algo/threaded_copy.h"
 
-#include "dwi/tractography/GT/particlegrid.h"
-#include "dwi/tractography/GT/gt.h"
-#include "dwi/tractography/GT/externalenergy.h"
-#include "dwi/tractography/GT/internalenergy.h"
-#include "dwi/tractography/GT/mhsampler.h"
-
+#include "dwi/tractography/GTStein/particlegrid.h"
+#include "dwi/tractography/GTStein/gt.h"
+#include "dwi/tractography/GTStein/externalenergy.h"
+#include "dwi/tractography/GTStein/internalenergy.h"
+#include "dwi/tractography/GTStein/steinsampler.h"
 
 using namespace MR;
 using namespace App;
@@ -215,7 +214,7 @@ class __copy_fod { MEMALIGN(__copy_fod<T>)
 void run ()
 {
 
-  using namespace DWI::Tractography::GT;
+  using namespace DWI::Tractography::GTStein;
 
   // Inputs -----------------------------------------------------------------------------
 
@@ -311,12 +310,11 @@ void run ()
   Eint->setConnPot(cpot);
   EnergySumComputer* Esum = new EnergySumComputer(stats, Eint, properties.lam_int, Eext, properties.lam_ext / ( wmscale2 * properties.weight*properties.weight));
 
-  MHSampler mhs (dwi, properties, stats, pgrid, Esum, mask);   // All EnergyComputers are recursively destroyed upon destruction of mhs, except for the shared data.
+  SteinSampler sampler(dwi, properties, stats, pgrid, Esum, mask); // All EnergyComputers are recursively destroyed upon destruction of mhs, except for the shared data.
 
+  INFO("Start Stein Variational sampler");
 
-  INFO("Start MH sampler");
-
-  Thread::run (Thread::multi(mhs), "MH sampler");
+  Thread::run(Thread::multi(sampler), "Stein Variational sampler");
 
   INFO("Final no. particles: " + std::to_string(pgrid.getTotalCount()));
   INFO("Final external energy: " + std::to_string(stats.getEextTotal()));
